@@ -1,4 +1,4 @@
-package main
+package accumulator
 
 import (
 	"context"
@@ -14,7 +14,7 @@ func BenchmarkAccumulatorNoDelay(b *testing.B) {
 	feedChan(ch, 9000000, 0)
 	close(ch)
 
-	acc := NewAccumulator(ch, 300, time.Millisecond/500, false)
+	acc := New(ch, 300, time.Millisecond/500)
 
 	var total = 0
 	calls := make(map[CallOrigin]int, 3)
@@ -37,7 +37,7 @@ func BenchmarkAccumulatorDelay(b *testing.B) {
 
 	ch := make(chan uint, 10000)
 
-	acc := NewAccumulator(ch, 50, time.Millisecond, false)
+	acc := New(ch, 50, time.Millisecond)
 
 	var total = 0
 	calls := make(map[CallOrigin]int, 3)

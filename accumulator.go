@@ -1,4 +1,4 @@
-package main
+package accumulator
 
 import (
 	"context"
@@ -7,12 +7,10 @@ import (
 	"time"
 )
 
-
 type Batched[T any] struct {
 	input     <-chan T
 	maxsize   uint
 	timeout   time.Duration
-	drain     bool
 	batchPool sync.Pool
 }
 
@@ -21,7 +19,7 @@ const (
 	defaultTimeout      = time.Duration(defaultSize) * time.Millisecond
 )
 
-// New creates a new batcher. 
+// New creates a new batcher.
 // When either maxsize or a timeout is reached, a batch is completed.
 func New[T any](input <-chan T, maxsize uint, timeout time.Duration) *Batched[T] {
 
@@ -97,7 +95,8 @@ func (c CallOrigin) String() string {
 // When the either a timeout or the max size is reached, it will call `fn` with the items
 // and a CallOrigin.
 // Can return the errors:
-// 	"fn cannot be nil"
+//
+//	"fn cannot be nil"
 //	context.DeadlineExceeded
 //	context.Canceled
 //
@@ -109,12 +108,13 @@ func (a *Batched[T]) Accumulate(ctx context.Context, fn func(CallOrigin, []T)) e
 	}
 
 	var batchTimeout chan struct{} = nil
+	realChan := make(chan struct{})
 
 	startBatchTimeout := func() {
 		if batchTimeout != nil {
 			return
 		}
-		batchTimeout = make(chan struct{})
+		batchTimeout = realChan
 		go func() {
 			time.Sleep(a.timeout)
 			batchTimeout <- struct{}{}
