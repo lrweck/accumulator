@@ -20,7 +20,7 @@ const (
 	defaultTimeout      = time.Duration(defaultSize) * time.Millisecond
 )
 
-func NewAccumulator[T any](input <-chan T, maxsize uint, timeout time.Duration, drain bool) *Batched[T] {
+func New[T any](input <-chan T, maxsize uint, timeout time.Duration, drain bool) *Batched[T] {
 
 	size := defaultSize
 	timeO := defaultTimeout
