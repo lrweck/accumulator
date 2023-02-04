@@ -7,6 +7,10 @@ Really easy to use:
 ```go
 package main
 
+import (
+  _ "github.com/lrweck/accumulator
+)
+
 func main(){
   
   inputChan := make(chan int, 10)
@@ -18,7 +22,7 @@ func main(){
       inputChan <- i
     }
     close(inputChan)
-  }
+  }()
   
   err := batch.Accumulate(context.Background(), func(o CallOrigin, items []int){
     fmt.Printf("received %d items via %q", len(items), o)
