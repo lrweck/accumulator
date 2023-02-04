@@ -3,9 +3,14 @@ package accumulator
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 )
+
+func TestMe(s string) {
+	fmt.Println(s)
+}
 
 type Batched[T any] struct {
 	input     <-chan T
