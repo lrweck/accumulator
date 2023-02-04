@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+
 type Batched[T any] struct {
 	input     <-chan T
 	maxsize   uint
@@ -20,7 +21,9 @@ const (
 	defaultTimeout      = time.Duration(defaultSize) * time.Millisecond
 )
 
-func New[T any](input <-chan T, maxsize uint, timeout time.Duration, drain bool) *Batched[T] {
+// New creates a new batcher. 
+// When either maxsize or a timeout is reached, a batch is completed.
+func New[T any](input <-chan T, maxsize uint, timeout time.Duration) *Batched[T] {
 
 	size := defaultSize
 	timeO := defaultTimeout
@@ -36,7 +39,6 @@ func New[T any](input <-chan T, maxsize uint, timeout time.Duration, drain bool)
 		input:   input,
 		maxsize: size,
 		timeout: timeO,
-		drain:   drain,
 		batchPool: sync.Pool{
 			New: func() any {
 				ss := make([]T, 0, size)
@@ -70,6 +72,7 @@ func (a *Batched[T]) drainChan() []T {
 	return slice
 }
 
+// CallOrigin defines what is the origin of the batch
 type CallOrigin uint
 
 const (
@@ -90,6 +93,15 @@ func (c CallOrigin) String() string {
 	return "unknown"
 }
 
+// Accumulate will read from `chan input` until it is closed or `ctx` is `Done()`
+// When the either a timeout or the max size is reached, it will call `fn` with the items
+// and a CallOrigin.
+// Can return the errors:
+// 	"fn cannot be nil"
+//	context.DeadlineExceeded
+//	context.Canceled
+//
+// When context is `Done()`, no further reads to the channel will be made
 func (a *Batched[T]) Accumulate(ctx context.Context, fn func(CallOrigin, []T)) error {
 
 	if fn == nil {
@@ -127,9 +139,6 @@ func (a *Batched[T]) Accumulate(ctx context.Context, fn func(CallOrigin, []T)) e
 			processBatch(OriginTimeout)
 		case req, open := <-a.input:
 			if !open {
-				if a.drain {
-					*batch = append(*batch, a.drainChan()...)
-				}
 				processBatch(OriginRemaining)
 				return nil
 			}
