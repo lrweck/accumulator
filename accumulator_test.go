@@ -1,4 +1,4 @@
-package main
+package accumulator
 
 import (
 	"context"
