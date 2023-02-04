@@ -62,14 +62,6 @@ func (a *Batched[T]) giveSliceBack(s *[]T) {
 	a.batchPool.Put(s)
 }
 
-func (a *Batched[T]) drainChan() []T {
-	slice := make([]T, 0, len(a.input))
-	for v := range a.input {
-		slice = append(slice, v)
-	}
-	return slice
-}
-
 // CallOrigin defines what is the origin of the batch
 type CallOrigin uint
 
