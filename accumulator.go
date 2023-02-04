@@ -40,25 +40,26 @@ func New[T any](input <-chan T, maxsize uint, timeout time.Duration) *Batched[T]
 		batchPool: sync.Pool{
 			New: func() any {
 				ss := make([]T, 0, size)
-				return &ss
+				return ss
 			},
 		},
 	}
 }
 
-func (a *Batched[T]) getNewSlice() *[]T {
+func (a *Batched[T]) getNewSlice() []T {
 	ssAny := a.batchPool.Get()
 	if ssAny == nil {
 		panic("slice is nil")
 	}
-	ss, ok := ssAny.(*[]T)
+	ss, ok := ssAny.([]T)
 	if !ok {
 		panic("failed to asset slice")
 	}
 	return ss
 }
 
-func (a *Batched[T]) giveSliceBack(s *[]T) {
+func (a *Batched[T]) giveSliceBack(s []T) {
+	s = s[:0]
 	a.batchPool.Put(s)
 }
 
@@ -116,8 +117,8 @@ func (a *Batched[T]) Accumulate(ctx context.Context, fn func(CallOrigin, []T)) e
 	batch := a.getNewSlice()
 
 	processBatch := func(o CallOrigin) {
-		if len(*batch) > 0 {
-			fn(o, *batch)
+		if len(batch) > 0 {
+			fn(o, batch)
 			a.giveSliceBack(batch)
 			batch = a.getNewSlice()
 		}
@@ -134,9 +135,9 @@ func (a *Batched[T]) Accumulate(ctx context.Context, fn func(CallOrigin, []T)) e
 				processBatch(OriginRemaining)
 				return nil
 			}
-			*batch = append(*batch, req)
+			batch = append(batch, req)
 			startBatchTimeout()
-			if uint(len(*batch)) >= a.maxsize {
+			if uint(len(batch)) >= a.maxsize {
 				processBatch(OriginSize)
 			}
 		}
