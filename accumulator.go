@@ -19,6 +19,10 @@ const (
 	defaultTimeout      = time.Duration(defaultSize) * time.Millisecond
 )
 
+func ABC() {
+
+}
+
 // New creates a new batcher.
 // When either maxsize or a timeout is reached, a batch is completed.
 func New[T any](input <-chan T, maxsize uint, timeout time.Duration) *Batched[T] {

@@ -43,7 +43,7 @@ func BenchmarkAccumulatorDelay(b *testing.B) {
 	calls := make(map[CallOrigin]int, 3)
 
 	go func() {
-		feedChan(ch, 500, time.Second)
+		feedChan(ch, 5000, time.Second)
 		close(ch)
 	}()
 
@@ -57,8 +57,8 @@ func BenchmarkAccumulatorDelay(b *testing.B) {
 
 	b.StopTimer()
 
-	fmt.Println("total", total)
-	fmt.Println("calls", calls)
+	b.Log("total", total)
+	b.Log("calls", calls)
 
 }
 
