@@ -29,3 +29,4 @@ func main(){
   
 }
 ```
+It is able to achieve high performance by minimizing channel communication, and avoiding busy-looping.
