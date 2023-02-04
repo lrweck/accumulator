@@ -8,7 +8,7 @@ Really easy to use:
 package main
 
 import (
-  _ "github.com/lrweck/accumulator
+  _ "github.com/lrweck/accumulator"
 )
 
 func main(){
